@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Hay Festival Arequipa 2026 – Check-in</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto;
+      background: white;
+    }
+
+    #resultado {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+    }
+
+    button {
+      padding: 14px 25px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #222;
+      color: white;
+      margin: 10px;
+    }
+
+    .valido {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h1>Hay Festival Arequipa 2026</h1>
+
+  <p>Check-in</p>
+
+  <button onclick="iniciarScanner()">
+    📷 INICIAR CÁMARA
+  </button>
+
+  <div id="reader"></div>
+
+  <div id="resultado">
+    Pulsa el botón para iniciar la cámara.
+  </div>
+
+
+  <script>
+
+    let scanner = null;
+    let scannerActivo = false;
+
+
+    function iniciarScanner() {
+
+      if (scannerActivo) {
+        return;
+      }
+
+      document.getElementById("resultado").innerHTML =
+        "<p>Solicitando acceso a la cámara...</p>";
+
+      scanner = new Html5Qrcode("reader");
+
+      scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: {
+            width: 250,
+            height: 250
+          }
+        },
+
+        function(codigo) {
+
+          scannerActivo = false;
+
+          scanner.stop()
+            .then(function() {
+              qrEscaneado(codigo);
+            })
+            .catch(function() {
+              qrEscaneado(codigo);
+            });
+
+        },
+
+        function(error) {
+          // Ignoramos los errores mientras busca el QR
+        }
+
+      )
+      .then(function() {
+
+        scannerActivo = true;
+
+        document.getElementById("resultado").innerHTML =
+          "<p>📷 Cámara activa</p>" +
+          "<p>Apunta al código QR del invitado.</p>";
+
+      })
+
+      .catch(function(error) {
+
+        document.getElementById("resultado").innerHTML =
+          "<h2 class='error'>❌ No se pudo acceder a la cámara</h2>" +
+          "<p>Verifica que el navegador tenga permisos para usar la cámara.</p>";
+
+      });
+
+    }
+
+
+    function qrEscaneado(codigo) {
+
+      document.getElementById("resultado").innerHTML =
+        "<p>QR detectado:</p>" +
+        "<strong>" + codigo + "</strong>";
+
+    }
+
+
+  </script>
+
+</body>
+</html>
