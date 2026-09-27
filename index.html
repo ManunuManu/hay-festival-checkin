@@ -43,6 +43,7 @@
       padding: 20px;
       background: white;
       border-radius: 10px;
+      box-sizing: border-box;
     }
 
     button {
@@ -101,12 +102,8 @@
 
   <script>
 
-    /* =====================================================
-       URL DEL WEB APP DE GOOGLE APPS SCRIPT
-       ===================================================== */
-
     const API_URL =
-      "https://script.google.com/macros/s/AKfycbziQCrSCikSMd27MZuTiyX9WrTWrJmZoTibWetaHv6ExwBaifqSWAzW6l52aL56Sz0S/exec";
+      "https://script.google.com/macros/s/AKfycbzHxHJelrZnkWOAnYcSEdqZKYbPkfeRjssefvE_M26R_JyMcBWv1KYoTo43AOQVI71f/exec";
 
 
     let scanner = null;
@@ -131,19 +128,13 @@
 
 
       scanner.start(
-
-        {
-          facingMode: "environment"
-        },
-
+        { facingMode: "environment" },
         {
           fps: 10,
-
           qrbox: {
             width: 250,
             height: 250
           }
-
         },
 
         function(codigo) {
@@ -153,27 +144,20 @@
           }
 
           procesando = true;
-
           scannerActivo = false;
 
           scanner.stop()
             .then(function() {
-
               qrEscaneado(codigo);
-
             })
             .catch(function() {
-
               qrEscaneado(codigo);
-
             });
 
         },
 
         function(error) {
-
-          // Ignoramos los errores mientras busca el QR
-
+          // Ignorar errores mientras busca el QR
         }
 
       )
@@ -194,6 +178,8 @@
           "<h2 class='error'>❌ No se pudo acceder a la cámara</h2>" +
           "<p>Verifica los permisos de cámara del navegador.</p>";
 
+        procesando = false;
+
       });
 
     }
@@ -205,11 +191,12 @@
 
     function qrEscaneado(codigo) {
 
+      codigo = String(codigo).trim();
+
       document.getElementById("resultado").innerHTML =
         "<p>🔎 Código detectado:</p>" +
         "<h2>" + codigo + "</h2>" +
         "<p>Verificando registro...</p>";
-
 
       consultarInvitado(codigo);
 
@@ -217,7 +204,7 @@
 
 
     /* =====================================================
-       CONSULTAR GOOGLE SHEETS
+       CONSULTAR INVITADO
        ===================================================== */
 
     function consultarInvitado(codigo) {
@@ -242,9 +229,12 @@
       };
 
 
-      const script = document.createElement("script");
+      const script =
+        document.createElement("script");
+
 
       script.id = callbackName;
+
 
       script.src =
         API_URL +
@@ -258,8 +248,11 @@
       script.onerror = function() {
 
         document.getElementById("resultado").innerHTML =
-          "<h2 class='error'>❌ Error de conexión</h2>" +
-          "<p>No se pudo consultar el registro.</p>";
+          "<h2 class='error'>❌ ERROR DE CONEXIÓN</h2>" +
+          "<p>No se pudo consultar el registro.</p>" +
+          "<button onclick='nuevoEscaneo()'>" +
+          "📷 NUEVO ESCANEO" +
+          "</button>";
 
         procesando = false;
 
@@ -280,20 +273,25 @@
       if (!resultado.encontrado) {
 
         document.getElementById("resultado").innerHTML =
+
           "<h2 class='error'>❌ CÓDIGO NO REGISTRADO</h2>" +
+
           "<p>" +
-          (resultado.mensaje || "El código no está registrado.") +
+          (resultado.mensaje ||
+          "El código no está registrado.") +
           "</p>" +
-          "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+
+          "<button onclick='nuevoEscaneo()'>" +
+          "📷 NUEVO ESCANEO" +
+          "</button>";
 
         return;
-
       }
 
 
-      /* ---------------------------------------------
-         SI YA INGRESÓ
-         --------------------------------------------- */
+      /* ===================================================
+         QR YA UTILIZADO
+         =================================================== */
 
       if (resultado.estado === "Ingresó") {
 
@@ -318,16 +316,18 @@
 
           "<p>Este código ya fue utilizado para ingresar.</p>" +
 
-          "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+          "<button onclick='nuevoEscaneo()'>" +
+          "📷 NUEVO ESCANEO" +
+          "</button>";
 
         return;
 
       }
 
 
-      /* ---------------------------------------------
-         REGISTRO ENCONTRADO
-         --------------------------------------------- */
+      /* ===================================================
+         INVITADO VÁLIDO
+         =================================================== */
 
       document.getElementById("resultado").innerHTML =
 
@@ -368,6 +368,7 @@
 
       window[callbackName] = function(resultado) {
 
+
         if (resultado.exito) {
 
           document.getElementById("resultado").innerHTML =
@@ -395,9 +396,12 @@
 
             "<p>El ingreso ha sido registrado correctamente.</p>" +
 
-            "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+            "<button onclick='nuevoEscaneo()'>" +
+            "📷 NUEVO ESCANEO" +
+            "</button>";
 
         }
+
 
         else {
 
@@ -406,18 +410,23 @@
             "<h2 class='error'>⚠️ INGRESO NO AUTORIZADO</h2>" +
 
             "<p>" +
-            (resultado.mensaje || "No se pudo registrar el ingreso.") +
+            (resultado.mensaje ||
+            "No se pudo registrar el ingreso.") +
             "</p>" +
 
-            "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+            "<button onclick='nuevoEscaneo()'>" +
+            "📷 NUEVO ESCANEO" +
+            "</button>";
 
         }
 
 
         delete window[callbackName];
 
+
         const script =
           document.getElementById(callbackName);
+
 
         if (script) {
           script.remove();
@@ -426,9 +435,12 @@
       };
 
 
-      const script = document.createElement("script");
+      const script =
+        document.createElement("script");
+
 
       script.id = callbackName;
+
 
       script.src =
         API_URL +
@@ -447,7 +459,9 @@
 
           "<p>No se pudo registrar el ingreso.</p>" +
 
-          "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+          "<button onclick='nuevoEscaneo()'>" +
+          "📷 NUEVO ESCANEO" +
+          "</button>";
 
         procesando = false;
 
