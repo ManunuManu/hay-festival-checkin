@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Hay Festival Arequipa 2026 – Check-in</title>
 
@@ -27,6 +33,8 @@
       max-width: 500px;
       margin: 20px auto;
       background: white;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     #resultado {
@@ -56,8 +64,20 @@
       color: red;
     }
 
+    .advertencia {
+      color: #d97706;
+    }
+
+    .datos {
+      text-align: left;
+      margin-top: 15px;
+      line-height: 1.7;
+    }
+
   </style>
+
 </head>
+
 
 <body>
 
@@ -65,11 +85,14 @@
 
   <p>Check-in</p>
 
+
   <button onclick="iniciarScanner()">
     📷 INICIAR CÁMARA
   </button>
 
+
   <div id="reader"></div>
+
 
   <div id="resultado">
     Pulsa el botón para iniciar la cámara.
@@ -78,9 +101,22 @@
 
   <script>
 
+    /* =====================================================
+       URL DEL WEB APP DE GOOGLE APPS SCRIPT
+       ===================================================== */
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbziQCrSCikSMd27MZuTiyX9WrTWrJmZoTibWetaHv6ExwBaifqSWAzW6l52aL56Sz0S/exec";
+
+
     let scanner = null;
     let scannerActivo = false;
+    let procesando = false;
 
+
+    /* =====================================================
+       INICIAR CÁMARA
+       ===================================================== */
 
     function iniciarScanner() {
 
@@ -93,41 +129,61 @@
 
       scanner = new Html5Qrcode("reader");
 
+
       scanner.start(
-        { facingMode: "environment" },
+
+        {
+          facingMode: "environment"
+        },
+
         {
           fps: 10,
+
           qrbox: {
             width: 250,
             height: 250
           }
+
         },
 
         function(codigo) {
+
+          if (procesando) {
+            return;
+          }
+
+          procesando = true;
 
           scannerActivo = false;
 
           scanner.stop()
             .then(function() {
+
               qrEscaneado(codigo);
+
             })
             .catch(function() {
+
               qrEscaneado(codigo);
+
             });
 
         },
 
         function(error) {
+
           // Ignoramos los errores mientras busca el QR
+
         }
 
       )
+
       .then(function() {
 
         scannerActivo = true;
 
         document.getElementById("resultado").innerHTML =
-          "<p>📷 Cámara activa</p>" +
+          "<p>📷 <strong>Cámara activa</strong></p>" +
           "<p>Apunta al código QR del invitado.</p>";
 
       })
@@ -136,23 +192,290 @@
 
         document.getElementById("resultado").innerHTML =
           "<h2 class='error'>❌ No se pudo acceder a la cámara</h2>" +
-          "<p>Verifica que el navegador tenga permisos para usar la cámara.</p>";
+          "<p>Verifica los permisos de cámara del navegador.</p>";
 
       });
 
     }
 
 
+    /* =====================================================
+       QR DETECTADO
+       ===================================================== */
+
     function qrEscaneado(codigo) {
 
       document.getElementById("resultado").innerHTML =
-        "<p>QR detectado:</p>" +
-        "<strong>" + codigo + "</strong>";
+        "<p>🔎 Código detectado:</p>" +
+        "<h2>" + codigo + "</h2>" +
+        "<p>Verificando registro...</p>";
+
+
+      consultarInvitado(codigo);
 
     }
 
 
+    /* =====================================================
+       CONSULTAR GOOGLE SHEETS
+       ===================================================== */
+
+    function consultarInvitado(codigo) {
+
+      const callbackName =
+        "respuesta_" + Date.now();
+
+
+      window[callbackName] = function(resultado) {
+
+        mostrarResultado(resultado);
+
+        delete window[callbackName];
+
+        const script =
+          document.getElementById(callbackName);
+
+        if (script) {
+          script.remove();
+        }
+
+      };
+
+
+      const script = document.createElement("script");
+
+      script.id = callbackName;
+
+      script.src =
+        API_URL +
+        "?action=buscar" +
+        "&codigo=" +
+        encodeURIComponent(codigo) +
+        "&callback=" +
+        callbackName;
+
+
+      script.onerror = function() {
+
+        document.getElementById("resultado").innerHTML =
+          "<h2 class='error'>❌ Error de conexión</h2>" +
+          "<p>No se pudo consultar el registro.</p>";
+
+        procesando = false;
+
+      };
+
+
+      document.body.appendChild(script);
+
+    }
+
+
+    /* =====================================================
+       MOSTRAR RESULTADO
+       ===================================================== */
+
+    function mostrarResultado(resultado) {
+
+      if (!resultado.encontrado) {
+
+        document.getElementById("resultado").innerHTML =
+          "<h2 class='error'>❌ CÓDIGO NO REGISTRADO</h2>" +
+          "<p>" +
+          (resultado.mensaje || "El código no está registrado.") +
+          "</p>" +
+          "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+
+        return;
+
+      }
+
+
+      /* ---------------------------------------------
+         SI YA INGRESÓ
+         --------------------------------------------- */
+
+      if (resultado.estado === "Ingresó") {
+
+        document.getElementById("resultado").innerHTML =
+
+          "<h2 class='error'>⚠️ REGISTRO YA UTILIZADO</h2>" +
+
+          "<div class='datos'>" +
+
+          "<strong>Nombre:</strong> " +
+          resultado.nombre +
+          "<br>" +
+
+          "<strong>Empresa:</strong> " +
+          (resultado.empresa || "—") +
+          "<br>" +
+
+          "<strong>Código:</strong> " +
+          resultado.codigo +
+
+          "</div>" +
+
+          "<p>Este código ya fue utilizado para ingresar.</p>" +
+
+          "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+
+        return;
+
+      }
+
+
+      /* ---------------------------------------------
+         REGISTRO ENCONTRADO
+         --------------------------------------------- */
+
+      document.getElementById("resultado").innerHTML =
+
+        "<h2>✅ INVITADO ENCONTRADO</h2>" +
+
+        "<div class='datos'>" +
+
+        "<strong>Nombre:</strong> " +
+        resultado.nombre +
+        "<br>" +
+
+        "<strong>Empresa:</strong> " +
+        (resultado.empresa || "—") +
+        "<br>" +
+
+        "<strong>Código:</strong> " +
+        resultado.codigo +
+
+        "</div>" +
+
+        "<p>Registrando ingreso...</p>";
+
+
+      registrarIngreso(resultado.codigo);
+
+    }
+
+
+    /* =====================================================
+       REGISTRAR INGRESO
+       ===================================================== */
+
+    function registrarIngreso(codigo) {
+
+      const callbackName =
+        "registro_" + Date.now();
+
+
+      window[callbackName] = function(resultado) {
+
+        if (resultado.exito) {
+
+          document.getElementById("resultado").innerHTML =
+
+            "<h2 class='valido'>✅ INGRESO AUTORIZADO</h2>" +
+
+            "<div class='datos'>" +
+
+            "<strong>Nombre:</strong> " +
+            resultado.nombre +
+            "<br>" +
+
+            "<strong>Empresa:</strong> " +
+            (resultado.empresa || "—") +
+            "<br>" +
+
+            "<strong>Código:</strong> " +
+            resultado.codigo +
+            "<br>" +
+
+            "<strong>Hora de ingreso:</strong> " +
+            resultado.fechaIngreso +
+
+            "</div>" +
+
+            "<p>El ingreso ha sido registrado correctamente.</p>" +
+
+            "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+
+        }
+
+        else {
+
+          document.getElementById("resultado").innerHTML =
+
+            "<h2 class='error'>⚠️ INGRESO NO AUTORIZADO</h2>" +
+
+            "<p>" +
+            (resultado.mensaje || "No se pudo registrar el ingreso.") +
+            "</p>" +
+
+            "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+
+        }
+
+
+        delete window[callbackName];
+
+        const script =
+          document.getElementById(callbackName);
+
+        if (script) {
+          script.remove();
+        }
+
+      };
+
+
+      const script = document.createElement("script");
+
+      script.id = callbackName;
+
+      script.src =
+        API_URL +
+        "?action=registrar" +
+        "&codigo=" +
+        encodeURIComponent(codigo) +
+        "&callback=" +
+        callbackName;
+
+
+      script.onerror = function() {
+
+        document.getElementById("resultado").innerHTML =
+
+          "<h2 class='error'>❌ ERROR DE CONEXIÓN</h2>" +
+
+          "<p>No se pudo registrar el ingreso.</p>" +
+
+          "<button onclick='nuevoEscaneo()'>📷 NUEVO ESCANEO</button>";
+
+        procesando = false;
+
+      };
+
+
+      document.body.appendChild(script);
+
+    }
+
+
+    /* =====================================================
+       NUEVO ESCANEO
+       ===================================================== */
+
+    function nuevoEscaneo() {
+
+      procesando = false;
+
+      document.getElementById("resultado").innerHTML =
+        "<p>Listo para escanear otro código.</p>";
+
+      iniciarScanner();
+
+    }
+
   </script>
 
 </body>
+
 </html>
