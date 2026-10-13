@@ -1,495 +1,839 @@
+
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>Hay Festival Arequipa 2026 – Check-in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hay Festival Arequipa 2026 | Control de Ingreso</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-      background: #f5f5f5;
-    }
-
-    h1 {
-      margin-bottom: 5px;
-    }
-
-    #reader {
-      width: 100%;
-      max-width: 500px;
-      margin: 20px auto;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    #resultado {
-      max-width: 500px;
-      margin: 20px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 10px;
+    * {
       box-sizing: border-box;
     }
 
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f4f5f7;
+      color: #263238;
+      font-family: Verdana, Arial, sans-serif;
+    }
+
+    .contenedor {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .encabezado {
+      background: #ffffff;
+      padding: 24px 20px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 23px;
+      color: #173b58;
+    }
+
+    .subtitulo {
+      margin: 0;
+      color: #64717d;
+      font-size: 13px;
+    }
+
+    .panel {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd2d9;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 14px;
+      background: #fff;
+      margin-bottom: 14px;
+    }
+
     button {
-      padding: 14px 25px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 10px;
+      border: 0;
+      border-radius: 7px;
       cursor: pointer;
-      background: #222;
-      color: white;
-      margin: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: bold;
     }
 
-    .valido {
-      color: green;
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
     }
 
-    .error {
-      color: red;
+    .boton-principal {
+      background: #173b58;
+      color: #ffffff;
     }
 
-    .advertencia {
-      color: #d97706;
+    .boton-secundario {
+      background: #e8edf1;
+      color: #173b58;
     }
 
-    .datos {
-      text-align: left;
-      margin-top: 15px;
+    #lector {
+      width: 100%;
+      margin: 12px auto;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    #lector:empty {
+      display: none;
+    }
+
+    .ayuda {
+      color: #65727d;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 4px 0 12px;
+    }
+
+    .resultado {
+      display: none;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .resultado strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .resultado.exito {
+      display: block;
+      background: #e7f5eb;
+      color: #176534;
+      border: 1px solid #b7dfc2;
+    }
+
+    .resultado.error {
+      display: block;
+      background: #fff0ef;
+      color: #a12622;
+      border: 1px solid #f0c3c0;
+    }
+
+    .resultado.aviso {
+      display: block;
+      background: #fff7df;
+      color: #765512;
+      border: 1px solid #ead89a;
+    }
+
+    .fila-titulo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 16px;
+      color: #173b58;
+    }
+
+    .contador {
+      color: #65727d;
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .ingreso {
+      padding: 12px 0;
+      border-bottom: 1px solid #e8ebee;
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .ingreso:last-child {
+      border-bottom: 0;
+    }
+
+    .ingreso strong {
+      color: #173b58;
+    }
+
+    .vacio {
+      color: #65727d;
+      font-size: 12px;
       line-height: 1.7;
     }
 
-  </style>
+    .pie {
+      text-align: center;
+      color: #77838d;
+      font-size: 10px;
+      padding: 8px;
+    }
 
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
 </head>
 
-
 <body>
+  <main class="contenedor">
 
-  <h1>Hay Festival Arequipa 2026</h1>
+    <header class="encabezado">
+      <h1>Hay Festival Arequipa 2026</h1>
+      <p class="subtitulo">Sistema de control de ingreso</p>
+    </header>
 
-  <p>Check-in</p>
+    <section class="panel">
+      <label for="evento">Selecciona el evento</label>
 
+      <select id="evento">
+        <option value="Coctel Inauguracion">
+          Cóctel de Inauguración
+        </option>
+        <option value="Fiesta de Cierre">
+          Fiesta de Cierre
+        </option>
+      </select>
 
-  <button onclick="iniciarScanner()">
-    📷 INICIAR CÁMARA
-  </button>
+      <button
+        id="botonCamara"
+        class="boton-principal"
+        type="button"
+        onclick="alternarCamara()">
+        Iniciar cámara para escanear QR
+      </button>
 
+      <div id="lector"></div>
 
-  <div id="reader"></div>
+      <p class="ayuda">
+        Si la cámara no funciona, puedes ingresar manualmente el
+        código que aparece debajo del código QR de la invitación.
+      </p>
 
+      <label for="codigo">Código de invitación</label>
 
-  <div id="resultado">
-    Pulsa el botón para iniciar la cámara.
-  </div>
+      <input
+        id="codigo"
+        type="text"
+        placeholder="Ej.: HF26A-00001"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false">
 
+      <button
+        id="botonValidar"
+        class="boton-secundario"
+        type="button"
+        onclick="validarCodigo()">
+        Verificar y registrar ingreso
+      </button>
+
+      <div
+        id="resultado"
+        class="resultado"
+        role="status"
+        aria-live="polite">
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="fila-titulo">
+        <h2>Últimos ingresos</h2>
+        <span id="contador" class="contador">Actualizando...</span>
+      </div>
+
+      <div id="listaIngresos" aria-live="polite">
+        <p class="vacio">Consultando los ingresos registrados...</p>
+      </div>
+    </section>
+
+    <footer class="pie">
+      Hay Festival Arequipa 2026
+    </footer>
+
+  </main>
 
   <script>
-
+    // Conserva la URL de la aplicación web de Apps Script.
     const API_URL =
       "https://script.google.com/macros/s/AKfycbzHxHJelrZnkWOAnYcSEdqZKYbPkfeRjssefvE_M26R_JyMcBWv1KYoTo43AOQVI71f/exec";
 
-
-    let scanner = null;
-    let scannerActivo = false;
+    let lectorQR = null;
+    let camaraActiva = false;
     let procesando = false;
+    let temporizadorIngresos = null;
 
+    const $ = id => document.getElementById(id);
 
-    /* =====================================================
-       INICIAR CÁMARA
-       ===================================================== */
+    function escaparHTML(valor) {
+      return String(valor == null ? "" : valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-    function iniciarScanner() {
+    function mostrarResultado(tipo, titulo, mensaje) {
+      const caja = $("resultado");
 
-      if (scannerActivo) {
-        return;
+      caja.className = "resultado " + tipo;
+      caja.innerHTML =
+        "<strong>" + escaparHTML(titulo) + "</strong>" +
+        escaparHTML(mensaje);
+    }
+
+    function limpiarResultado() {
+      const caja = $("resultado");
+      caja.className = "resultado";
+      caja.innerHTML = "";
+    }
+
+    function normalizar(texto) {
+      return String(texto || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
+    function eventoSeleccionado() {
+      return $("evento").value;
+    }
+
+    function nombreEvento(valor) {
+      return valor === "Coctel Inauguracion"
+        ? "Cóctel de Inauguración"
+        : "Fiesta de Cierre";
+    }
+
+    function codigoPerteneceAlEvento(codigo, evento) {
+      const valor = String(codigo || "").trim().toUpperCase();
+
+      if (valor.startsWith("HF26A-")) {
+        return evento === "Coctel Inauguracion";
       }
 
-      document.getElementById("resultado").innerHTML =
-        "<p>Solicitando acceso a la cámara...</p>";
+      if (valor.startsWith("HF26C-")) {
+        return evento === "Fiesta de Cierre";
+      }
 
-      scanner = new Html5Qrcode("reader");
+      return null;
+    }
 
+    /*
+     * Comunicación con Apps Script mediante JSONP.
+     * No requiere google.script.run ni una petición fetch.
+     */
+    function llamarAPI(accion, parametros = {}) {
+      return new Promise((resolve, reject) => {
+        const callback =
+          "hfCallback_" + Date.now() + "_" +
+          Math.random().toString(36).slice(2);
 
-      scanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: {
-            width: 250,
-            height: 250
+        const script = document.createElement("script");
+        const query = new URLSearchParams();
+
+        query.set("action", accion);
+        query.set("callback", callback);
+
+        Object.keys(parametros).forEach(clave => {
+          query.set(clave, parametros[clave]);
+        });
+
+        let terminado = false;
+
+        const limpiar = () => {
+          if (terminado) return;
+          terminado = true;
+
+          delete window[callback];
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
           }
-        },
 
-        function(codigo) {
+          clearTimeout(limite);
+        };
 
-          if (procesando) {
-            return;
-          }
+        const limite = setTimeout(() => {
+          limpiar();
+          reject(new Error(
+            "La conexión tardó demasiado. Comprueba tu conexión e inténtalo nuevamente."
+          ));
+        }, 20000);
 
-          procesando = true;
-          scannerActivo = false;
+        window[callback] = datos => {
+          limpiar();
+          resolve(datos);
+        };
 
-          scanner.stop()
-            .then(function() {
-              qrEscaneado(codigo);
-            })
-            .catch(function() {
-              qrEscaneado(codigo);
-            });
+        script.onerror = () => {
+          limpiar();
+          reject(new Error(
+            "No se pudo conectar con el sistema de ingreso."
+          ));
+        };
 
-        },
-
-        function(error) {
-          // Ignorar errores mientras busca el QR
-        }
-
-      )
-
-      .then(function() {
-
-        scannerActivo = true;
-
-        document.getElementById("resultado").innerHTML =
-          "<p>📷 <strong>Cámara activa</strong></p>" +
-          "<p>Apunta al código QR del invitado.</p>";
-
-      })
-
-      .catch(function(error) {
-
-        document.getElementById("resultado").innerHTML =
-          "<h2 class='error'>❌ No se pudo acceder a la cámara</h2>" +
-          "<p>Verifica los permisos de cámara del navegador.</p>";
-
-        procesando = false;
-
+        script.src = API_URL + "?" + query.toString();
+        document.body.appendChild(script);
       });
-
     }
 
-
-    /* =====================================================
-       QR DETECTADO
-       ===================================================== */
-
-    function qrEscaneado(codigo) {
-
-      codigo = String(codigo).trim();
-
-      document.getElementById("resultado").innerHTML =
-        "<p>🔎 Código detectado:</p>" +
-        "<h2>" + codigo + "</h2>" +
-        "<p>Verificando registro...</p>";
-
-      consultarInvitado(codigo);
-
-    }
-
-
-    /* =====================================================
-       CONSULTAR INVITADO
-       ===================================================== */
-
-    function consultarInvitado(codigo) {
-
-      const callbackName =
-        "respuesta_" + Date.now();
-
-
-      window[callbackName] = function(resultado) {
-
-        mostrarResultado(resultado);
-
-        delete window[callbackName];
-
-        const script =
-          document.getElementById(callbackName);
-
-        if (script) {
-          script.remove();
-        }
-
-      };
-
-
-      const script =
-        document.createElement("script");
-
-
-      script.id = callbackName;
-
-
-      script.src =
-        API_URL +
-        "?action=buscar" +
-        "&codigo=" +
-        encodeURIComponent(codigo) +
-        "&callback=" +
-        callbackName;
-
-
-      script.onerror = function() {
-
-        document.getElementById("resultado").innerHTML =
-          "<h2 class='error'>❌ ERROR DE CONEXIÓN</h2>" +
-          "<p>No se pudo consultar el registro.</p>" +
-          "<button onclick='nuevoEscaneo()'>" +
-          "📷 NUEVO ESCANEO" +
-          "</button>";
-
-        procesando = false;
-
-      };
-
-
-      document.body.appendChild(script);
-
-    }
-
-
-    /* =====================================================
-       MOSTRAR RESULTADO
-       ===================================================== */
-
-    function mostrarResultado(resultado) {
-
-      if (!resultado.encontrado) {
-
-        document.getElementById("resultado").innerHTML =
-
-          "<h2 class='error'>❌ CÓDIGO NO REGISTRADO</h2>" +
-
-          "<p>" +
-          (resultado.mensaje ||
-          "El código no está registrado.") +
-          "</p>" +
-
-          "<button onclick='nuevoEscaneo()'>" +
-          "📷 NUEVO ESCANEO" +
-          "</button>";
-
+    async function alternarCamara() {
+      if (camaraActiva) {
+        await detenerCamara();
         return;
       }
 
-
-      /* ===================================================
-         QR YA UTILIZADO
-         =================================================== */
-
-      if (resultado.estado === "Ingresó") {
-
-        document.getElementById("resultado").innerHTML =
-
-          "<h2 class='error'>⚠️ REGISTRO YA UTILIZADO</h2>" +
-
-          "<div class='datos'>" +
-
-          "<strong>Nombre:</strong> " +
-          resultado.nombre +
-          "<br>" +
-
-          "<strong>Empresa:</strong> " +
-          (resultado.empresa || "—") +
-          "<br>" +
-
-          "<strong>Código:</strong> " +
-          resultado.codigo +
-
-          "</div>" +
-
-          "<p>Este código ya fue utilizado para ingresar.</p>" +
-
-          "<button onclick='nuevoEscaneo()'>" +
-          "📷 NUEVO ESCANEO" +
-          "</button>";
-
+      if (typeof Html5Qrcode === "undefined") {
+        mostrarResultado(
+          "error",
+          "Escáner no disponible",
+          "No se pudo cargar el lector QR. Comprueba tu conexión a internet."
+        );
         return;
-
       }
 
+      try {
+        $("botonCamara").disabled = true;
 
-      /* ===================================================
-         INVITADO VÁLIDO
-         =================================================== */
+        lectorQR = new Html5Qrcode("lector");
 
-      document.getElementById("resultado").innerHTML =
+        await lectorQR.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 240, height: 240 },
+            aspectRatio: 1
+          },
+          async textoLeido => {
+            if (procesando) return;
 
-        "<h2>✅ INVITADO ENCONTRADO</h2>" +
+            $("codigo").value = String(textoLeido || "").trim();
+            await detenerCamara();
+            await validarCodigo();
+          },
+          () => {
+            // Los errores de lectura de cada fotograma son normales.
+          }
+        );
 
-        "<div class='datos'>" +
+        camaraActiva = true;
+        $("botonCamara").textContent = "Detener cámara";
+        limpiarResultado();
 
-        "<strong>Nombre:</strong> " +
-        resultado.nombre +
-        "<br>" +
+      } catch (error) {
+        lectorQR = null;
+        camaraActiva = false;
 
-        "<strong>Empresa:</strong> " +
-        (resultado.empresa || "—") +
-        "<br>" +
+        mostrarResultado(
+          "error",
+          "No se pudo iniciar la cámara",
+          "Revisa los permisos de cámara del navegador y comprueba que la página esté abierta mediante HTTPS. También puedes ingresar el código manualmente."
+        );
 
-        "<strong>Código:</strong> " +
-        resultado.codigo +
-
-        "</div>" +
-
-        "<p>Registrando ingreso...</p>";
-
-
-      registrarIngreso(resultado.codigo);
-
+      } finally {
+        $("botonCamara").disabled = false;
+      }
     }
 
-
-    /* =====================================================
-       REGISTRAR INGRESO
-       ===================================================== */
-
-    function registrarIngreso(codigo) {
-
-      const callbackName =
-        "registro_" + Date.now();
-
-
-      window[callbackName] = function(resultado) {
-
-
-        if (resultado.exito) {
-
-          document.getElementById("resultado").innerHTML =
-
-            "<h2 class='valido'>✅ INGRESO AUTORIZADO</h2>" +
-
-            "<div class='datos'>" +
-
-            "<strong>Nombre:</strong> " +
-            resultado.nombre +
-            "<br>" +
-
-            "<strong>Empresa:</strong> " +
-            (resultado.empresa || "—") +
-            "<br>" +
-
-            "<strong>Código:</strong> " +
-            resultado.codigo +
-            "<br>" +
-
-            "<strong>Hora de ingreso:</strong> " +
-            resultado.fechaIngreso +
-
-            "</div>" +
-
-            "<p>El ingreso ha sido registrado correctamente.</p>" +
-
-            "<button onclick='nuevoEscaneo()'>" +
-            "📷 NUEVO ESCANEO" +
-            "</button>";
-
+    async function detenerCamara() {
+      if (lectorQR) {
+        try {
+          if (camaraActiva) {
+            await lectorQR.stop();
+          }
+        } catch (error) {
+          // Continuar con la limpieza de la interfaz.
         }
 
+        try {
+          await lectorQR.clear();
+        } catch (error) {
+          // El lector puede haberse detenido previamente.
+        }
+      }
 
-        else {
+      lectorQR = null;
+      camaraActiva = false;
+      $("lector").innerHTML = "";
+      $("botonCamara").textContent =
+        "Iniciar cámara para escanear QR";
+    }
 
-          document.getElementById("resultado").innerHTML =
+    async function validarCodigo() {
+      if (procesando) return;
 
-            "<h2 class='error'>⚠️ INGRESO NO AUTORIZADO</h2>" +
+      const codigo = $("codigo").value.trim().toUpperCase();
+      const evento = eventoSeleccionado();
 
-            "<p>" +
-            (resultado.mensaje ||
-            "No se pudo registrar el ingreso.") +
-            "</p>" +
+      if (!codigo) {
+        mostrarResultado(
+          "aviso",
+          "Falta el código",
+          "Escanea el QR o escribe el código de la invitación."
+        );
+        $("codigo").focus();
+        return;
+      }
 
-            "<button onclick='nuevoEscaneo()'>" +
-            "📷 NUEVO ESCANEO" +
-            "</button>";
+      const coincide = codigoPerteneceAlEvento(codigo, evento);
 
+      if (coincide === false) {
+        mostrarResultado(
+          "error",
+          "Evento incorrecto",
+          "Este código corresponde a otro evento. Selecciona el evento correcto antes de continuar."
+        );
+        return;
+      }
+
+      procesando = true;
+      $("botonValidar").disabled = true;
+      $("botonValidar").textContent = "Verificando invitación...";
+      limpiarResultado();
+
+      try {
+        const busqueda = await llamarAPI("buscar", {
+          codigo: codigo
+        });
+
+        if (!busqueda || busqueda.error) {
+          throw new Error(
+            busqueda && busqueda.error
+              ? busqueda.error
+              : "El sistema no devolvió una respuesta válida."
+          );
         }
 
-
-        delete window[callbackName];
-
-
-        const script =
-          document.getElementById(callbackName);
-
-
-        if (script) {
-          script.remove();
+        if (busqueda.encontrado !== true) {
+          mostrarResultado(
+            "error",
+            "Invitación no encontrada",
+            "No encontramos este código. Comprueba que esté escrito correctamente."
+          );
+          return;
         }
 
-      };
+        const eventoInvitacion = busqueda.evento || "";
 
+        if (
+          eventoInvitacion &&
+          normalizar(eventoInvitacion) !== normalizar(evento) &&
+          !(
+            normalizar(eventoInvitacion).includes("coctel") &&
+            evento === "Coctel Inauguracion"
+          )
+        ) {
+          mostrarResultado(
+            "error",
+            "Evento incorrecto",
+            "La invitación pertenece a " +
+              eventoInvitacion +
+              ". No se registró ningún ingreso."
+          );
+          return;
+        }
 
-      const script =
-        document.createElement("script");
+        const estado = normalizar(busqueda.estado);
 
+        if (estado === "ingresado" || estado === "ya ingreso" ||
+            estado === "ya ingresó" || busqueda.yaIngreso === true) {
+          mostrarResultado(
+            "aviso",
+            "Ingreso ya registrado",
+            (busqueda.nombre || "El invitado") +
+              " ya tiene un ingreso registrado. No se ha creado otro registro."
+          );
+          return;
+        }
 
-      script.id = callbackName;
+        if (estado !== "aprobado") {
+          let mensaje = "La invitación debe estar aprobada antes de permitir el ingreso.";
 
+          if (estado === "pendiente") {
+            mensaje = "La invitación está pendiente de aprobación. No se registró el ingreso.";
+          } else if (estado === "rechazado") {
+            mensaje = "La invitación fue rechazada. No se registró el ingreso.";
+          }
 
-      script.src =
-        API_URL +
-        "?action=registrar" +
-        "&codigo=" +
-        encodeURIComponent(codigo) +
-        "&callback=" +
-        callbackName;
+          mostrarResultado(
+            "aviso",
+            "Ingreso no autorizado",
+            mensaje
+          );
+          return;
+        }
 
+        $("botonValidar").textContent = "Registrando ingreso...";
 
-      script.onerror = function() {
+        const registro = await llamarAPI("registrar", {
+          codigo: codigo
+        });
 
-        document.getElementById("resultado").innerHTML =
+        if (!registro || registro.error) {
+          throw new Error(
+            registro && registro.error
+              ? registro.error
+              : "No se pudo confirmar el registro del ingreso."
+          );
+        }
 
-          "<h2 class='error'>❌ ERROR DE CONEXIÓN</h2>" +
+        if (
+          registro.success === true ||
+          registro.exito === true ||
+          registro.registrado === true
+        ) {
+          mostrarResultado(
+            "exito",
+            "¡Ingreso registrado correctamente!",
+            (registro.nombre || busqueda.nombre || "Invitado") +
+              (registro.empresa || busqueda.empresa
+                ? " — " + (registro.empresa || busqueda.empresa)
+                : "") +
+              ". Evento: " + nombreEvento(evento) + "."
+          );
 
-          "<p>No se pudo registrar el ingreso.</p>" +
+          $("codigo").value = "";
+          await actualizarIngresos();
+          return;
+        }
 
-          "<button onclick='nuevoEscaneo()'>" +
-          "📷 NUEVO ESCANEO" +
-          "</button>";
+        if (
+          registro.yaIngreso === true ||
+          normalizar(registro.estado) === "ingresado"
+        ) {
+          mostrarResultado(
+            "aviso",
+            "Ingreso ya registrado",
+            (registro.nombre || busqueda.nombre || "El invitado") +
+              " ya tenía su ingreso registrado."
+          );
+          await actualizarIngresos();
+          return;
+        }
 
+        if (
+          normalizar(registro.estado) === "pendiente" ||
+          normalizar(registro.estado) === "rechazado"
+        ) {
+          mostrarResultado(
+            "error",
+            "Ingreso no autorizado",
+            "La invitación no está aprobada. No se confirmó el ingreso."
+          );
+          return;
+        }
+
+        mostrarResultado(
+          "error",
+          "No se pudo confirmar el ingreso",
+          registro.mensaje ||
+            registro.mensajeError ||
+            "La respuesta del sistema no confirmó el registro. Comprueba el estado antes de volver a intentarlo."
+        );
+
+      } catch (error) {
+        mostrarResultado(
+          "error",
+          "Error de conexión",
+          error.message ||
+            "No fue posible comunicarse con el sistema. Inténtalo nuevamente."
+        );
+
+      } finally {
         procesando = false;
-
-      };
-
-
-      document.body.appendChild(script);
-
+        $("botonValidar").disabled = false;
+        $("botonValidar").textContent =
+          "Verificar y registrar ingreso";
+      }
     }
 
+    function extraerLista(respuesta) {
+      if (Array.isArray(respuesta)) return respuesta;
 
-    /* =====================================================
-       NUEVO ESCANEO
-       ===================================================== */
+      if (!respuesta || typeof respuesta !== "object") return [];
 
-    function nuevoEscaneo() {
+      if (Array.isArray(respuesta.ingresos)) return respuesta.ingresos;
+      if (Array.isArray(respuesta.registros)) return respuesta.registros;
+      if (Array.isArray(respuesta.resultados)) return respuesta.resultados;
+      if (Array.isArray(respuesta.data)) return respuesta.data;
 
-      procesando = false;
-
-      document.getElementById("resultado").innerHTML =
-        "<p>Listo para escanear otro código.</p>";
-
-      iniciarScanner();
-
+      return [];
     }
 
+    function formatearFecha(valor) {
+      if (!valor) return "";
+
+      const fecha = new Date(valor);
+
+      if (Number.isNaN(fecha.getTime())) {
+        return String(valor);
+      }
+
+      return fecha.toLocaleString("es-PE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      });
+    }
+
+    async function actualizarIngresos() {
+      const evento = eventoSeleccionado();
+
+      try {
+        const respuesta = await llamarAPI("ultimos", {
+          evento: evento,
+          limite: "5"
+        });
+
+        const ingresos = extraerLista(respuesta);
+        const lista = $("listaIngresos");
+
+        if (respuesta && respuesta.error) {
+          throw new Error(respuesta.error);
+        }
+
+        if (respuesta && respuesta.success === false) {
+          throw new Error(
+            respuesta.mensaje || "No se pudieron consultar los ingresos."
+          );
+        }
+
+        $("contador").textContent =
+          ingresos.length + " registro(s) recientes";
+
+        if (ingresos.length === 0) {
+          lista.innerHTML =
+            '<p class="vacio">No hay ingresos recientes para este evento o el sistema no devolvió registros.</p>';
+          return;
+        }
+
+        lista.innerHTML = ingresos.slice(0, 5).map(item => {
+          const nombre = item.nombre ||
+            item.nombreCompleto ||
+            item["Nombre Completo"] ||
+            "Invitado";
+
+          const empresa = item.empresa ||
+            item["Empresa"] ||
+            "";
+
+          const codigo = item.codigo ||
+            item["Código"] ||
+            item["Codigo"] ||
+            "";
+
+          const fecha = formatearFecha(
+            item.fechaIngreso ||
+            item.fecha ||
+            item.timestamp ||
+            item["Fecha Ingreso"] ||
+            item["Marca temporal"] ||
+            ""
+          );
+
+          return `
+            <div class="ingreso">
+              <strong>${escaparHTML(nombre)}</strong><br>
+              ${empresa
+                ? escaparHTML(empresa) + "<br>"
+                : ""}
+              ${codigo
+                ? "Código: " + escaparHTML(codigo) + "<br>"
+                : ""}
+              ${fecha
+                ? "Ingreso: " + escaparHTML(fecha)
+                : ""}
+            </div>
+          `;
+        }).join("");
+
+      } catch (error) {
+        $("contador").textContent = "No disponible";
+
+        $("listaIngresos").innerHTML =
+          '<p class="vacio">No se pudo actualizar la lista de ingresos. Comprueba la conexión con Apps Script.</p>';
+      }
+    }
+
+    $("evento").addEventListener("change", async () => {
+      limpiarResultado();
+      await detenerCamara();
+      await actualizarIngresos();
+    });
+
+    $("codigo").addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        validarCodigo();
+      }
+    });
+
+    window.addEventListener("load", () => {
+      actualizarIngresos();
+
+      temporizadorIngresos = setInterval(
+        actualizarIngresos,
+        10000
+      );
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (temporizadorIngresos) {
+        clearInterval(temporizadorIngresos);
+      }
+    });
   </script>
-
 </body>
-
 </html>
