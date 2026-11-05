@@ -406,9 +406,6 @@ input:focus {
         </button>
       </div>
     </form>
-
-    <div id="resultado" class="mensaje"></div>
-    <div id="fichaQR"></div>
   </div>
 
 
@@ -421,7 +418,6 @@ input:focus {
       autocomplete="off">
 
     <div id="sugerencias" class="sugerencias oculto"></div>
-    <div id="fichaNombre"></div>
 
     <p class="ayuda">
       Puedes buscar a invitados que no confirmaron su asistencia y que no tienen código QR.
@@ -449,9 +445,6 @@ input:focus {
         </button>
       </div>
     </form>
-
-    <div id="resultadoAcompanante" class="mensaje"></div>
-    <div id="fichaAcompanante"></div>
   </div>
 
 
@@ -608,9 +601,6 @@ function abrirEvento(evento) {
   $("nombreAcompanante").value = "";
   $("empresaAcompanante").value = "";
 
-  $("fichaQR").innerHTML = "";
-  $("fichaNombre").innerHTML = "";
-  $("fichaAcompanante").innerHTML = "";
   limpiarResultado();
 
   $("listaIngresos").innerHTML = "";
@@ -764,7 +754,6 @@ async function procesarCodigoEscaneado(codigo) {
 
 
 /* =========================================================
-   BUSCAR CÓDIGO QR Y MOSTRAR FICHA
    BUSCAR CÓDIGO QR Y MOSTRAR FICHA EN EL ESPACIO ÚNICO
    ========================================================= */
 
@@ -775,7 +764,6 @@ async function validarCodigo(eventoFormulario) {
   const codigo = String($("codigo").value || "").trim();
 
   if (!codigo) {
-    mostrarMensaje("resultado", "Ingresa o escanea un código.", "aviso");
     mostrarMensajeUnico("Ingresa o escanea un código.", "aviso");
     return;
   }
@@ -784,7 +772,6 @@ async function validarCodigo(eventoFormulario) {
   $("botonValidar").disabled = true;
   $("botonValidar").textContent = "Buscando...";
 
-  $("fichaQR").innerHTML = "";
   limpiarResultado();
   registroSeleccionado = null;
 
@@ -795,8 +782,6 @@ async function validarCodigo(eventoFormulario) {
     });
 
     if (!respuesta || !respuesta.encontrado) {
-      mostrarMensaje(
-        "resultado",
       mostrarMensajeUnico(
         respuesta && respuesta.mensaje
           ? respuesta.mensaje
@@ -807,8 +792,6 @@ async function validarCodigo(eventoFormulario) {
     }
 
     if (respuesta.eventoIncorrecto) {
-      mostrarMensaje(
-        "resultado",
       mostrarMensajeUnico(
         "Esta invitación corresponde a " + respuesta.evento + ".",
         "error"
@@ -817,8 +800,6 @@ async function validarCodigo(eventoFormulario) {
     }
 
     if (respuesta.estado === "Ingresó") {
-      mostrarMensaje(
-        "resultado",
       mostrarMensajeUnico(
         "ESTE INVITADO YA INGRESÓ. " +
         respuesta.nombre +
@@ -831,8 +812,6 @@ async function validarCodigo(eventoFormulario) {
     }
 
     if (respuesta.validacion !== "Aprobado") {
-      mostrarMensaje(
-        "resultado",
       mostrarMensajeUnico(
         respuesta.validacion === "Rechazado"
           ? "La invitación fue rechazada."
@@ -849,21 +828,9 @@ async function validarCodigo(eventoFormulario) {
       tipo: "qr"
     };
 
-    mostrarMensaje(
-      "resultado",
-      "Código válido. Comprueba los datos antes de registrar el ingreso.",
-      "exito"
-    );
-
-    mostrarFicha(
-      "fichaQR",
-      registroSeleccionado,
-      "qr"
-    );
     mostrarFicha(registroSeleccionado, "qr");
 
   } catch (error) {
-    mostrarMensaje("resultado", error.message, "error");
     mostrarMensajeUnico(error.message, "error");
 
   } finally {
@@ -883,7 +850,6 @@ $("busquedaNombre").addEventListener("input", function() {
 
   const texto = this.value.trim();
 
-  $("fichaNombre").innerHTML = "";
   $("sugerencias").innerHTML = "";
   $("sugerencias").classList.add("oculto");
 
@@ -956,9 +922,6 @@ function seleccionarInvitado(persona) {
   registroSeleccionado = null;
 
   if (persona.estado === "Ingresó") {
-    $("fichaNombre").innerHTML = "";
-    mostrarMensaje(
-      "resultado",
     mostrarMensajeUnico(
       persona.nombre + " ya tiene un ingreso registrado.",
       "aviso"
@@ -967,19 +930,12 @@ function seleccionarInvitado(persona) {
   }
 
   if (persona.codigo) {
-    mostrarMensaje(
-      "resultado",
-      "Esta persona tiene un código QR. Utiliza la búsqueda por código o escanéalo.",
-      "aviso"
-    );
     $("codigo").value = persona.codigo;
     validarCodigo(null);
     return;
   }
 
   if (persona.validacion === "Rechazado") {
-    mostrarMensaje(
-      "resultado",
     mostrarMensajeUnico(
       "Esta invitación está rechazada y no puede registrarse.",
       "error"
@@ -994,13 +950,6 @@ function seleccionarInvitado(persona) {
     tipo: "manual"
   };
 
-  $("fichaNombre").innerHTML = "";
-
-  mostrarFicha(
-    "fichaNombre",
-    registroSeleccionado,
-    "manual"
-  );
   mostrarFicha(registroSeleccionado, "manual");
 }
 
@@ -1031,8 +980,6 @@ async function crearAcompanante(eventoFormulario) {
     });
 
     if (!respuesta || !respuesta.exito) {
-      mostrarMensaje(
-        "resultadoAcompanante",
       mostrarMensajeUnico(
         respuesta && respuesta.mensaje
           ? respuesta.mensaje
@@ -1044,12 +991,6 @@ async function crearAcompanante(eventoFormulario) {
 
     $("formularioAcompanante").reset();
 
-    mostrarMensaje(
-      "resultadoAcompanante",
-      "Acompañante añadido a la lista. Confirma su ingreso cuando corresponda.",
-      "exito"
-    );
-
     registroSeleccionado = {
       fila: respuesta.fila,
       nombre: respuesta.nombre,
@@ -1057,19 +998,9 @@ async function crearAcompanante(eventoFormulario) {
       tipo: "manual"
     };
 
-    mostrarFicha(
-      "fichaAcompanante",
-      registroSeleccionado,
-      "manual"
-    );
     mostrarFicha(registroSeleccionado, "manual");
 
   } catch (error) {
-    mostrarMensaje(
-      "resultadoAcompanante",
-      error.message,
-      "error"
-    );
     mostrarMensajeUnico(error.message, "error");
 
   } finally {
@@ -1080,12 +1011,9 @@ async function crearAcompanante(eventoFormulario) {
 
 
 /* =========================================================
-   MOSTRAR FICHA Y PEDIR CONFIRMACIÓN
    MOSTRAR FICHA EN EL ESPACIO ÚNICO Y PEDIR CONFIRMACIÓN
    ========================================================= */
 
-function mostrarFicha(contenedorId, persona, tipo) {
-  const contenedor = $(contenedorId);
 function mostrarFicha(persona, tipo) {
   const contenedor = $("resultadoUnico");
   contenedor.innerHTML = "";
@@ -1147,8 +1075,6 @@ async function confirmarIngreso(tipo, persona, boton) {
     }
 
     if (respuesta && respuesta.exito) {
-      mostrarMensaje(
-        "resultado",
       registroSeleccionado = null;
 
       $("codigo").value = "";
@@ -1160,27 +1086,15 @@ async function confirmarIngreso(tipo, persona, boton) {
         "INGRESO REGISTRADO CORRECTAMENTE: " +
         respuesta.nombre +
         (respuesta.empresa ? " — " + respuesta.empresa : "") +
-        (respuesta.fechaIngreso ? ". Hora: " + respuesta.fechaIngreso : ""),
         (respuesta.fechaIngreso ? ". Hora: " + respuesta.fechaIngreso : "") +
         ". Listo para registrar al siguiente invitado.",
         "exito"
       );
 
-      $("fichaQR").innerHTML = "";
-      $("fichaNombre").innerHTML = "";
-      $("fichaAcompanante").innerHTML = "";
-
-      $("codigo").value = "";
-      $("busquedaNombre").value = "";
-
-      registroSeleccionado = null;
-
       await actualizarIngresos();
       return;
     }
 
-    mostrarMensaje(
-      "resultado",
     mostrarMensajeUnico(
       respuesta && respuesta.mensaje
         ? respuesta.mensaje
@@ -1194,7 +1108,6 @@ async function confirmarIngreso(tipo, persona, boton) {
     await actualizarIngresos();
 
   } catch (error) {
-    mostrarMensaje("resultado", error.message, "error");
     mostrarMensajeUnico(error.message, "error");
     boton.disabled = false;
     boton.textContent = "REGISTRAR INGRESO";
@@ -1208,8 +1121,6 @@ async function confirmarIngreso(tipo, persona, boton) {
 
 function limpiarCodigo() {
   $("codigo").value = "";
-  $("fichaQR").innerHTML = "";
-  ocultarMensaje("resultado");
   limpiarResultado();
   registroSeleccionado = null;
   $("codigo").focus();
