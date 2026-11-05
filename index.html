@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -347,7 +348,6 @@ input:focus {
   </div>
 </section>
 
-
 <section id="pantallaEvento" class="oculto">
 
   <div class="panel">
@@ -363,7 +363,6 @@ input:focus {
     </div>
   </div>
 
-
   <div class="panel">
     <h3>1. Escanear código QR</h3>
     <p class="ayuda">
@@ -378,11 +377,8 @@ input:focus {
 
     <div id="lector"></div>
     <div id="estadoCamara" class="mensaje"></div>
-
-    <!-- ÚNICO ESPACIO DE RESULTADOS: QR, código, nombre y acompañantes -->
-    <div id="resultadoUnico" aria-live="polite"></div>
+    <div id="resultadoQR" aria-live="polite"></div>
   </div>
-
 
   <div class="panel">
     <h3>2. Ingreso mediante código</h3>
@@ -406,8 +402,9 @@ input:focus {
         </button>
       </div>
     </form>
-  </div>
 
+    <div id="resultadoCodigo" aria-live="polite"></div>
+  </div>
 
   <div class="panel">
     <h3>3. Buscar invitado por nombre</h3>
@@ -422,8 +419,9 @@ input:focus {
     <p class="ayuda">
       Puedes buscar a invitados que no confirmaron su asistencia y que no tienen código QR.
     </p>
-  </div>
 
+    <div id="resultadoNombre" aria-live="polite"></div>
+  </div>
 
   <div class="panel">
     <h3>4. Añadir acompañante</h3>
@@ -445,8 +443,9 @@ input:focus {
         </button>
       </div>
     </form>
-  </div>
 
+    <div id="resultadoAcompanante" aria-live="polite"></div>
+  </div>
 
   <div class="panel">
     <h3>Últimos cinco ingresos</h3>
@@ -460,7 +459,6 @@ input:focus {
 
 <div class="pie">Hay Festival Arequipa 2026</div>
 </main>
-
 
 <script>
 "use strict";
@@ -483,6 +481,12 @@ let registroSeleccionado = null;
 
 const $ = id => document.getElementById(id);
 
+const CONTENEDORES_RESULTADO = [
+  "resultadoQR",
+  "resultadoCodigo",
+  "resultadoNombre",
+  "resultadoAcompanante"
+];
 
 function mostrarMensaje(id, texto, tipo) {
   const elemento = $(id);
@@ -496,12 +500,18 @@ function ocultarMensaje(id) {
   elemento.textContent = "";
 }
 
-function limpiarResultado() {
-  $("resultadoUnico").innerHTML = "";
+function limpiarResultados() {
+  CONTENEDORES_RESULTADO.forEach(id => {
+    $(id).innerHTML = "";
+  });
 }
 
-function mostrarMensajeUnico(texto, tipo) {
-  const contenedor = $("resultadoUnico");
+function limpiarResultado(id) {
+  $(id).innerHTML = "";
+}
+
+function mostrarMensajeEn(id, texto, tipo) {
+  const contenedor = $(id);
   contenedor.innerHTML = "";
 
   const mensaje = document.createElement("div");
@@ -510,7 +520,6 @@ function mostrarMensajeUnico(texto, tipo) {
 
   contenedor.appendChild(mensaje);
 }
-
 
 function llamarAPI(accion, parametros = {}) {
   return new Promise((resolve, reject) => {
@@ -567,7 +576,6 @@ function llamarAPI(accion, parametros = {}) {
   });
 }
 
-
 function abrirEvento(evento) {
   if (!NOMBRE_EVENTOS[evento]) {
     alert("El evento seleccionado no es válido.");
@@ -601,7 +609,7 @@ function abrirEvento(evento) {
   $("nombreAcompanante").value = "";
   $("empresaAcompanante").value = "";
 
-  limpiarResultado();
+  limpiarResultados();
 
   $("listaIngresos").innerHTML = "";
   $("estadoLista").textContent = "Cargando ingresos...";
@@ -610,7 +618,6 @@ function abrirEvento(evento) {
 
   intervaloIngresos = setInterval(actualizarIngresos, 10000);
 }
-
 
 function volverInicio() {
   detenerActualizacion();
@@ -625,14 +632,12 @@ function volverInicio() {
   $("pantallaInicio").classList.remove("oculto");
 }
 
-
 function detenerActualizacion() {
   if (intervaloIngresos !== null) {
     clearInterval(intervaloIngresos);
     intervaloIngresos = null;
   }
 }
-
 
 /* =========================================================
    LECTOR QR
@@ -716,7 +721,6 @@ async function alternarCamara() {
   }
 }
 
-
 async function detenerCamara() {
   const boton = $("botonCamara");
 
@@ -744,27 +748,25 @@ async function detenerCamara() {
   boton.disabled = false;
 }
 
-
 async function procesarCodigoEscaneado(codigo) {
   $("codigo").value = codigo;
-  limpiarResultado();
+  limpiarResultados();
   await detenerCamara();
-  await validarCodigo(null);
+  await validarCodigo(null, "resultadoQR");
 }
 
-
 /* =========================================================
-   BUSCAR CÓDIGO QR Y MOSTRAR FICHA EN EL ESPACIO ÚNICO
+   BUSCAR CÓDIGO QR
    ========================================================= */
 
-async function validarCodigo(eventoFormulario) {
+async function validarCodigo(eventoFormulario, destino = "resultadoCodigo") {
   if (eventoFormulario) eventoFormulario.preventDefault();
   if (procesandoCodigo) return;
 
   const codigo = String($("codigo").value || "").trim();
 
   if (!codigo) {
-    mostrarMensajeUnico("Ingresa o escanea un código.", "aviso");
+    mostrarMensajeEn(destino, "Ingresa o escanea un código.", "aviso");
     return;
   }
 
@@ -772,7 +774,7 @@ async function validarCodigo(eventoFormulario) {
   $("botonValidar").disabled = true;
   $("botonValidar").textContent = "Buscando...";
 
-  limpiarResultado();
+  limpiarResultados();
   registroSeleccionado = null;
 
   try {
@@ -782,7 +784,8 @@ async function validarCodigo(eventoFormulario) {
     });
 
     if (!respuesta || !respuesta.encontrado) {
-      mostrarMensajeUnico(
+      mostrarMensajeEn(
+        destino,
         respuesta && respuesta.mensaje
           ? respuesta.mensaje
           : "No se encontró el código.",
@@ -792,7 +795,8 @@ async function validarCodigo(eventoFormulario) {
     }
 
     if (respuesta.eventoIncorrecto) {
-      mostrarMensajeUnico(
+      mostrarMensajeEn(
+        destino,
         "Esta invitación corresponde a " + respuesta.evento + ".",
         "error"
       );
@@ -800,7 +804,8 @@ async function validarCodigo(eventoFormulario) {
     }
 
     if (respuesta.estado === "Ingresó") {
-      mostrarMensajeUnico(
+      mostrarMensajeEn(
+        destino,
         "ESTE INVITADO YA INGRESÓ. " +
         respuesta.nombre +
         (respuesta.fechaIngreso
@@ -812,7 +817,8 @@ async function validarCodigo(eventoFormulario) {
     }
 
     if (respuesta.validacion !== "Aprobado") {
-      mostrarMensajeUnico(
+      mostrarMensajeEn(
+        destino,
         respuesta.validacion === "Rechazado"
           ? "La invitación fue rechazada."
           : "La invitación todavía no está aprobada.",
@@ -828,10 +834,10 @@ async function validarCodigo(eventoFormulario) {
       tipo: "qr"
     };
 
-    mostrarFicha(registroSeleccionado, "qr");
+    mostrarFicha(registroSeleccionado, "qr", destino);
 
   } catch (error) {
-    mostrarMensajeUnico(error.message, "error");
+    mostrarMensajeEn(destino, error.message, "error");
 
   } finally {
     procesandoCodigo = false;
@@ -839,7 +845,6 @@ async function validarCodigo(eventoFormulario) {
     $("botonValidar").textContent = "Buscar código";
   }
 }
-
 
 /* =========================================================
    BÚSQUEDA PREDICTIVA POR NOMBRE
@@ -852,6 +857,7 @@ $("busquedaNombre").addEventListener("input", function() {
 
   $("sugerencias").innerHTML = "";
   $("sugerencias").classList.add("oculto");
+  limpiarResultado("resultadoNombre");
 
   if (texto.length < 2) return;
 
@@ -859,7 +865,6 @@ $("busquedaNombre").addEventListener("input", function() {
     buscarPorNombre(texto);
   }, 300);
 });
-
 
 async function buscarPorNombre(texto) {
   try {
@@ -879,6 +884,12 @@ async function buscarPorNombre(texto) {
       mensaje.className = "sugerencia";
       mensaje.textContent = "No se encontraron coincidencias.";
       contenedor.appendChild(mensaje);
+
+      mostrarMensajeEn(
+        "resultadoNombre",
+        "No se encontraron coincidencias.",
+        "aviso"
+      );
       return;
     }
 
@@ -912,17 +923,23 @@ async function buscarPorNombre(texto) {
   } catch (error) {
     $("sugerencias").classList.remove("oculto");
     $("sugerencias").textContent = "No se pudo realizar la búsqueda.";
+
+    mostrarMensajeEn(
+      "resultadoNombre",
+      "No se pudo realizar la búsqueda.",
+      "error"
+    );
   }
 }
 
-
 function seleccionarInvitado(persona) {
   $("sugerencias").classList.add("oculto");
-  limpiarResultado();
+  limpiarResultados();
   registroSeleccionado = null;
 
   if (persona.estado === "Ingresó") {
-    mostrarMensajeUnico(
+    mostrarMensajeEn(
+      "resultadoNombre",
       persona.nombre + " ya tiene un ingreso registrado.",
       "aviso"
     );
@@ -931,12 +948,13 @@ function seleccionarInvitado(persona) {
 
   if (persona.codigo) {
     $("codigo").value = persona.codigo;
-    validarCodigo(null);
+    validarCodigo(null, "resultadoNombre");
     return;
   }
 
   if (persona.validacion === "Rechazado") {
-    mostrarMensajeUnico(
+    mostrarMensajeEn(
+      "resultadoNombre",
       "Esta invitación está rechazada y no puede registrarse.",
       "error"
     );
@@ -950,9 +968,8 @@ function seleccionarInvitado(persona) {
     tipo: "manual"
   };
 
-  mostrarFicha(registroSeleccionado, "manual");
+  mostrarFicha(registroSeleccionado, "manual", "resultadoNombre");
 }
-
 
 /* =========================================================
    AÑADIR ACOMPAÑANTE
@@ -969,7 +986,7 @@ async function crearAcompanante(eventoFormulario) {
   $("botonAcompanante").disabled = true;
   $("botonAcompanante").textContent = "Añadiendo...";
 
-  limpiarResultado();
+  limpiarResultados();
   registroSeleccionado = null;
 
   try {
@@ -980,7 +997,8 @@ async function crearAcompanante(eventoFormulario) {
     });
 
     if (!respuesta || !respuesta.exito) {
-      mostrarMensajeUnico(
+      mostrarMensajeEn(
+        "resultadoAcompanante",
         respuesta && respuesta.mensaje
           ? respuesta.mensaje
           : "No se pudo añadir al acompañante.",
@@ -998,10 +1016,14 @@ async function crearAcompanante(eventoFormulario) {
       tipo: "manual"
     };
 
-    mostrarFicha(registroSeleccionado, "manual");
+    mostrarFicha(
+      registroSeleccionado,
+      "manual",
+      "resultadoAcompanante"
+    );
 
   } catch (error) {
-    mostrarMensajeUnico(error.message, "error");
+    mostrarMensajeEn("resultadoAcompanante", error.message, "error");
 
   } finally {
     $("botonAcompanante").disabled = false;
@@ -1009,13 +1031,12 @@ async function crearAcompanante(eventoFormulario) {
   }
 }
 
-
 /* =========================================================
-   MOSTRAR FICHA EN EL ESPACIO ÚNICO Y PEDIR CONFIRMACIÓN
+   MOSTRAR FICHA Y PEDIR CONFIRMACIÓN
    ========================================================= */
 
-function mostrarFicha(persona, tipo) {
-  const contenedor = $("resultadoUnico");
+function mostrarFicha(persona, tipo, destino) {
+  const contenedor = $(destino);
   contenedor.innerHTML = "";
 
   const ficha = document.createElement("div");
@@ -1041,7 +1062,7 @@ function mostrarFicha(persona, tipo) {
   boton.textContent = "REGISTRAR INGRESO";
 
   boton.addEventListener("click", function() {
-    confirmarIngreso(tipo, persona, boton);
+    confirmarIngreso(tipo, persona, boton, destino);
   });
 
   ficha.appendChild(nombre);
@@ -1052,8 +1073,7 @@ function mostrarFicha(persona, tipo) {
   contenedor.appendChild(ficha);
 }
 
-
-async function confirmarIngreso(tipo, persona, boton) {
+async function confirmarIngreso(tipo, persona, boton, destino) {
   if (boton.disabled) return;
 
   boton.disabled = true;
@@ -1082,7 +1102,8 @@ async function confirmarIngreso(tipo, persona, boton) {
       $("sugerencias").innerHTML = "";
       $("sugerencias").classList.add("oculto");
 
-      mostrarMensajeUnico(
+      mostrarMensajeEn(
+        destino,
         "INGRESO REGISTRADO CORRECTAMENTE: " +
         respuesta.nombre +
         (respuesta.empresa ? " — " + respuesta.empresa : "") +
@@ -1095,7 +1116,8 @@ async function confirmarIngreso(tipo, persona, boton) {
       return;
     }
 
-    mostrarMensajeUnico(
+    mostrarMensajeEn(
+      destino,
       respuesta && respuesta.mensaje
         ? respuesta.mensaje
         : "No se pudo registrar el ingreso.",
@@ -1108,12 +1130,11 @@ async function confirmarIngreso(tipo, persona, boton) {
     await actualizarIngresos();
 
   } catch (error) {
-    mostrarMensajeUnico(error.message, "error");
+    mostrarMensajeEn(destino, error.message, "error");
     boton.disabled = false;
     boton.textContent = "REGISTRAR INGRESO";
   }
 }
-
 
 /* =========================================================
    LIMPIAR CÓDIGO
@@ -1121,11 +1142,10 @@ async function confirmarIngreso(tipo, persona, boton) {
 
 function limpiarCodigo() {
   $("codigo").value = "";
-  limpiarResultado();
+  limpiarResultado("resultadoCodigo");
   registroSeleccionado = null;
   $("codigo").focus();
 }
-
 
 /* =========================================================
    ACTUALIZAR CONTADOR Y ÚLTIMOS INGRESOS
